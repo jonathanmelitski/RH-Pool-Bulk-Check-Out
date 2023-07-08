@@ -10,9 +10,9 @@ var jsonParser = bodyParser.json();
 
 const app = express();
 
-var privateKey  = fs.readFileSync('./sslcert/privkey.pem', 'utf8');
-var certificate = fs.readFileSync('./sslcert/fullchain.pem', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
+//var privateKey  = fs.readFileSync('./sslcert/privkey.pem', 'utf8');
+//var certificate = fs.readFileSync('./sslcert/fullchain.pem', 'utf8');
+//var credentials = {key: privateKey, cert: certificate};
 
 const settingsId = process.env.NOTION_SETTINGS_ID;
 const notion = new Client({auth:process.env.NOTION_API_KEY});
@@ -22,7 +22,7 @@ app.use(cors());
 
 
 
-app.get("/checkOutUsers", jsonParser, async(req, res) => {
+app.post("/checkOutUsers", jsonParser, async(req, res) => {
     var groupsToCheckOut = [];
     var userIDsToCheckOut = [];
     const payload = {
@@ -62,24 +62,11 @@ app.get("/checkOutUsers", jsonParser, async(req, res) => {
             //res.json(resp);
         });
 
-        /*const checkOutUsersConfig = {
-            method: 'put',
-            url: 'https://api.mytimestation.com/v1.2/employees//check-out',
-            auth: {
-                username: timestationKey
-            }
-        }
-        await axios.request(checkOutUsersConfig).then(resp => {
-            res.json(resp);
-        }
-            
-        )*/
-
         if(userIDsToCheckOut.length == 0){
             res.status(400).json("Error! No checked-in users currently in the selected groups.");
             return;
         }
-        await userIDsToCheckOut.forEach(async(user) => {
+        userIDsToCheckOut.forEach(async(user) => {
             const checkOutUsersConfig = {
                 method: 'put',
                 url: 'https://api.mytimestation.com/v1.2/employees/'+user+'/check-out',
@@ -89,30 +76,25 @@ app.get("/checkOutUsers", jsonParser, async(req, res) => {
             }
             console.log(checkOutUsersConfig);
             console.log("checking out " + user);
-            /*await axios.request(checkOutUsersConfig).catch((error) => {
+            /*await axios.request(checkOutUsersConfig).then(() => console.log("done")).catch((error) => {
                 //res.status(400).json(error.response);
                 res.status(400).json(error.response.data.error);
                 return;
             });*/
-            console.log("done");
         })
             res.json("Successfully checked out " + userIDsToCheckOut.length + " users!");
-        
-            /*axios.request(checkOutUsersConfig).then(resp => {
-                console.log("done " + user)
-            }).catch(error => {
-                console.log("error");
-
-            })
-*/
         return;
     } catch (error) {
-        console.log("penis" + error);
+        console.log(error);
     }
 })
 
 
-var httpsServer = https.createServer(credentials, app);
+/*var httpsServer = https.createServer(credentials, app);
 httpsServer.listen("8443", () => {
-    console.log("Starting proxy at port 4000")
-});
+    console.log("Starting server at port 8443")
+});*/
+
+app.listen("4000", () => {
+    console.log("Starting server on 4000")
+})
